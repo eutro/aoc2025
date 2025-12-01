@@ -24,5 +24,5 @@ else
     fi
 fi
 
-./build.sh "$DAY"
+./build.sh "$DAY" || exit 1
 time ".lake/build/bin/Day$DAYP" "$@" < "$AOC_INPUT"
