@@ -45,13 +45,17 @@
   ;;'display-buffer-use-least-recent-window
   )
 
-(defun aoc-run (&optional prefix)
+(defvar aoc-run-hist nil)
+(defun aoc-run (&optional args)
   "Run the current day.
 
-With PREFIX, read input from the buffer."
-  (interactive "P")
+Pass the string-split ARGS as arguments."
+  (interactive
+   (list (when current-prefix-arg
+           (read-from-minibuffer "./run.sh " nil nil nil
+                                 'aoc-run-hist))))
   (let* ((day (aoc-day-number))
-         (inp-args (when prefix '("--")))
+         (inp-args (and args (split-string-shell-command args)))
          (buf (aoc-get-out-buffer t day))
          (args (cons (number-to-string day) inp-args))
          (proc (apply #'start-process "aoc-run" buf aoc--run-script args))
@@ -63,7 +67,7 @@ With PREFIX, read input from the buffer."
          (with-selected-window win 
            (recenter -1)))))
     (unless (eq (window-buffer win) buf)
-      (if prefix
+      (if args
           (pop-to-buffer buf aoc--display-buffer-action)
         (display-buffer buf aoc--display-buffer-action)))
     (message "./run.sh %s" (string-join (mapcar #'shell-quote-argument args) " "))))
