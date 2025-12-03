@@ -102,7 +102,7 @@ Pass the string-split ARGS as arguments."
 
 (define-minor-mode aoc-mode
   "Minor mode for Advent of Code utilities"
-  :lighter " AoC24")
+  :lighter " AoC25")
 
 (defconst aoc-run-mode-map
   (let ((keys (copy-keymap aoc-mode-map)))
