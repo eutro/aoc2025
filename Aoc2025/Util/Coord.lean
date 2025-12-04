@@ -1,9 +1,14 @@
+@[ext]
 structure Coord where
   x : Int
   y : Int
-deriving DecidableEq, Hashable, Inhabited, Nonempty, Repr, TypeName
+deriving DecidableEq, Hashable, Inhabited, Nonempty, Repr, TypeName, Ord
+@[simp] instance : LE Coord := leOfOrd
+@[simp] instance : LT Coord := ltOfOrd
 
 namespace Coord
+
+abbrev origin : Coord := ⟨0, 0⟩
 abbrev up : Coord := ⟨0, -1⟩
 abbrev down : Coord := ⟨0, 1⟩
 abbrev left : Coord := ⟨-1, 0⟩
@@ -24,4 +29,5 @@ abbrev adjacentDelta : List Coord :=
    down + left, down, down + right]
 def adjacent (pos : Coord) : List Coord :=
   List.map (pos + ·) adjacentDelta
+
 end Coord

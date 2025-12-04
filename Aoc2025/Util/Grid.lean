@@ -35,6 +35,7 @@ abbrev inBoundsXY (x y : Int) :=
 abbrev inBounds (pos : Coord) :=
   grid.inBoundsXY pos.x pos.y
 
+@[simp, grind =]
 instance : GetElem (Grid α) Coord α inBounds where
   getElem grid pos h := grid.rows[pos.y.toNat][pos.x.toNat]
 
@@ -49,5 +50,10 @@ def modify? (pos : Coord) (f : α -> α) : Grid α :=
 -- Replace grid[pos] with value, linearly.
 def set? (pos : Coord) (value : α) : Grid α :=
   grid.modify? pos (fun _ => value)
+
+@[simp, grind =]
+theorem modify?_inBounds {grid : Grid α} {pos : Coord} {f : α -> α}
+  : (grid.modify? pos f).inBounds pos ↔ grid.inBounds pos := by
+  unfold modify? ; simp
 
 end Grid
