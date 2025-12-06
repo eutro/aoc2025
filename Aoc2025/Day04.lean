@@ -29,7 +29,7 @@ abbrev IsRoll (grid : Grid Cell) (pos : Coord) :=
 abbrev accessibility (grid : Grid Cell) (pos : Coord) :=
   pos.adjacent.countP (IsRoll grid ·)
 abbrev ForkLiftAccessible (grid : Grid Cell) (pos : Coord) :=
-  accessibility grid pos < 4
+  IsRoll grid pos ∧ accessibility grid pos < 4
 
 structure AccessibilityMap where
   grid : Grid Cell
@@ -46,7 +46,7 @@ def AccessibilityMap.get (grid : Grid Cell) : AccessibilityMap := Id.run do
   for y in List.range grid.height do
     for x in List.range grid.width do
       let pos := Coord.mk x y
-      if IsRoll grid pos then
+      if h : IsRoll grid pos then
         let acc := accessibility grid pos
         if h : acc < 4
         then accessible := accessible.push ⟨pos, by grind⟩

@@ -1,4 +1,5 @@
 import Aoc2025.Util.Coord
+import Batteries.Data.List.Lemmas
 
 structure Grid (α : Type) where
   width : Nat
@@ -22,13 +23,49 @@ def fromLines {m : Type -> Type}
   : m (Grid α) := do
   let height := lines.size
   let width := Array.foldl max 0 (lines.map (·.length))
-  let rows <- (Vector.mapM · lines.toVector) fun row =>
+  let rows <- lines.toVector.mapM fun row =>
     let row := row.toList.toArray
     Vector.ofFnM fun i => do
-      if h : i < row.size
-      then cell row[i]
+      if h : i.toNat < row.size
+      then cell row[i.toNat]
       else default
   return mk width height rows
+
+theorem Array.max_length_le (rows : Array (Array α))
+  : ∀ row ∈ rows, row.size <= Array.foldl max 0 (rows.map (·.size)) := by
+  have ⟨rows⟩ := rows
+  simp
+  intro row hrow
+  rw [← List.foldr_eq_foldl]
+  induction rows <;> simp
+  case nil => contradiction
+  case cons hd tl ih =>
+    cases hrow
+    case head => omega
+    case tail h =>
+      have := ih h
+      omega
+
+def ofRows (rows : Array (Array α)) [Inhabited α] : Grid α :=
+  let height := rows.size
+  let width := Array.foldl max 0 (rows.map (·.size))
+  let rows := rows.toVector.map fun row =>
+    if h : row.size = width
+    then Vector.mk row h
+    else if h' : row.size <= width then
+      let row' := row ++ Array.replicate (width - row.size) default
+      Vector.mk row' (by grind)
+    -- This never happens
+    else Vector.mk (row.take width) (by grind)
+  mk width height rows
+
+def toRows : Array (Array α) := grid.rows.map (·.toArray) |>.toArray
+
+def transpose : Grid α :=
+  Grid.mk grid.height grid.width <|
+    Vector.ofFn fun x =>
+      Vector.ofFn fun y =>
+        grid.rows[y][x]
 
 abbrev inBoundsXY (x y : Int) :=
   0 <= x ∧ x < grid.width ∧ 0 <= y ∧ y < grid.height

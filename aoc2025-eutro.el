@@ -72,8 +72,9 @@ Pass the string-split ARGS as arguments."
         (display-buffer buf aoc--display-buffer-action)))
     (message "./run.sh %s" (string-join (mapcar #'shell-quote-argument args) " "))))
 
-(defun aoc-copy-part-answer (part)
-  "Copy the answer for the given PART from *aoc-output*."
+(defun aoc-copy-part-answer (part &optional no-kill)
+  "Copy the answer for the given PART from *aoc-output*.
+If NO-KILL is non-nil, then just return the value instead."
   (with-current-buffer (aoc-get-out-buffer)
     (goto-char (point-max))
     (unless (re-search-backward (format "Part %d: " part) nil t)
@@ -81,8 +82,10 @@ Pass the string-split ARGS as arguments."
     (goto-char (match-end 0))
     (let ((start (point)))
       (end-of-line)
-      (copy-region-as-kill start (point))
-      (message "Copied: %s" (current-kill 0 t)))))
+      (if no-kill
+          (buffer-substring-no-properties start (point))
+        (copy-region-as-kill start (point))
+        (message "Copied: %s" (current-kill 0 t))))))
 
 (defmacro aoc-copy-n (part)
   `(defun ,(intern (format "aoc-copy-%d" part)) ()
@@ -90,14 +93,33 @@ Pass the string-split ARGS as arguments."
      (interactive)
      (aoc-copy-part-answer ,part)))
 
+(defmacro aoc-submit-n (part)
+  `(defun ,(intern (format "aoc-submit-%d" part)) ()
+     ,(format "Submit the answer for part %d in *aoc-output*." part)
+     (interactive)
+     (let ((answer (aoc-copy-part-answer ,part 'no-kill)))
+       (when (y-or-n-p (format "Submit: %s for part %s?"
+                               answer ,part))
+         (async-shell-command
+          (format ,(format "raco aoc -y 2025 -d %%s --answer %s %%s"
+                           part)
+                  (aoc-day-number)
+                  (shell-quote-argument answer))
+          (format ,(format "*aoc-submit-y2025-d%%s-p%s*" part)
+                  (aoc-day-number)))))))
+
 (aoc-copy-n 1)
 (aoc-copy-n 2)
+(aoc-submit-n 1)
+(aoc-submit-n 2)
 
 (defconst aoc-mode-map
   (let ((keys (make-sparse-keymap)))
     (define-key keys (kbd "C-c C-c") #'aoc-run)
     (define-key keys (kbd "C-c 1") #'aoc-copy-1)
     (define-key keys (kbd "C-c 2") #'aoc-copy-2)
+    (define-key keys (kbd "C-c C-s 1") #'aoc-submit-1)
+    (define-key keys (kbd "C-c C-s 2") #'aoc-submit-2)
     keys))
 
 (define-minor-mode aoc-mode

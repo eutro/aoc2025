@@ -13,6 +13,7 @@ maxSynthPendingDepth = 3
 [[require]]
 name = "mathlib"
 scope = "leanprover-community"
+version = "git#v4.25.2"
 
 [[lean_lib]]
 name = "Aoc2025"
@@ -32,3 +33,11 @@ root = "Aoc2025.Day03"
 [[lean_exe]]
 name = "Day04"
 root = "Aoc2025.Day04"
+
+[[lean_exe]]
+name = "Day05"
+root = "Aoc2025.Day05"
+
+[[lean_exe]]
+name = "Day06"
+root = "Aoc2025.Day06"

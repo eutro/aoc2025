@@ -1,14 +1,8 @@
+import Aoc2025.Util
 import Batteries.Data.Nat.Digits
 
 namespace Day02
 open Day02
-
-structure Interval where
-  first : Nat
-  last : Nat
-
-instance : ToString Interval where
-  toString ivl := s!"{ivl.first}-{ivl.last}"
 
 def Nat.toNatDigitsRev (n b : Nat) : List Nat :=
   let b' := b; have hb' : b = b' := by rfl;
@@ -331,12 +325,8 @@ theorem Nat.isInvalidID_of_repeatToInvalidID (n k : Nat)
   : isInvalidID' (n.repeatToInvalidID k) k := by
   exists n
 
-def List.inclusiveRange (first last : Nat) : List Nat :=
-  List.range' first (last - first + 1)
 abbrev Interval.contains (ivl : Interval) (n : Nat) : Prop :=
   ivl.first <= n ∧ n <= ivl.last
-def Interval.inclusiveRange (ivl : Interval) : List Nat :=
-  List.inclusiveRange ivl.first ivl.last
 
 -- Filter the invalid IDs in the interval's range. Too slow to be useful.
 def Interval.filterInvalidIDsVeryNaive (ivl : Interval) : List Nat :=
@@ -380,11 +370,6 @@ def String.toNatIO (s : String) : IO Nat :=
   match s.toNat? with
   | some i => pure i
   | none => throw <| IO.userError s!"Not a number: {s}"
-
-def Interval.parse (s : String) : IO Interval :=
-  match s.splitOn "-" with
-  | [first, last] => do pure <| ⟨<- first.toNatIO, <- last.toNatIO⟩
-  | _ => throw <| IO.userError s!"Bad interval: {s}"
 
 def parseIntervals (s : String) : IO (List Interval) :=
   (s.splitOn ",").mapM Interval.parse
