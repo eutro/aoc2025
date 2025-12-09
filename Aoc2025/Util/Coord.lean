@@ -8,6 +8,9 @@ deriving DecidableEq, Hashable, Inhabited, Nonempty, Repr, TypeName, Ord
 
 namespace Coord
 
+instance : ToString Coord where
+  toString | ⟨x, y⟩ => s!"{x},{y}"
+
 abbrev origin : Coord := ⟨0, 0⟩
 abbrev up : Coord := ⟨0, -1⟩
 abbrev down : Coord := ⟨0, 1⟩
@@ -29,5 +32,21 @@ abbrev adjacentDelta : List Coord :=
    down + left, down, down + right]
 def adjacent (pos : Coord) : List Coord :=
   List.map (pos + ·) adjacentDelta
+
+def magnitudeSqr (pos : Coord) : Nat :=
+  (pos.x^2).toNat * (pos.y^2).toNat
+
+def abs (pos : Coord) : Coord := ⟨pos.x.natAbs, pos.y.natAbs⟩
+def area (pos : Coord) : Int := pos.x * pos.y
+
+def sign (pos : Coord) : Coord :=
+  ⟨pos.x.sign, pos.y.sign⟩
+
+abbrev bothLT (pos pos' : Coord) :=
+  pos.x < pos'.x ∧ pos.y < pos'.y
+abbrev bothLE (pos pos' : Coord) :=
+  pos.x ≤ pos'.x ∧ pos.y ≤ pos'.y
+
+def transpose (pos : Coord) : Coord := ⟨pos.y, pos.x⟩
 
 end Coord

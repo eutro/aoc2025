@@ -10,9 +10,6 @@ abbrev UnionFind (ℓ : Nat) :=
 namespace UnionFind
 variable {ℓ : Nat} (uf : UnionFind ℓ)
 
-structure WF : Prop where
-  sizesNormal : (uf.map (·.size)).sum = ℓ
-
 def new (ℓ : Nat) : UnionFind ℓ := Vector.ofFn (⟨·, 1⟩)      
 
 def find (n : Fin ℓ) : UnionFind ℓ × Fin ℓ :=
@@ -70,26 +67,23 @@ def Pos3D.distanceSqr (a b : Pos3D) : Int :=
   (a.x - b.x)^2 + (a.y - b.y)^2 + (a.z - b.z)^2
 
 def allEdges (boxes : Array Pos3D) : Id (Array (Fin boxes.size × Fin boxes.size)) := do
-  let boxDistances : Array (Array (Int × Fin boxes.size × Fin boxes.size)) := 
-    Array.replicate boxes.size () |>.mapFinIdx fun a () ha =>
-    have ha' : a < boxes.size := by grind
-    let boxA := boxes[a]'ha'
-    Array.replicate (boxes.size - (a + 1)) () |>.mapFinIdx fun b0 () hb0 =>
-      let b := b0 + (a + 1)
-      have hb : b < boxes.size := by grind
-      let boxB := boxes[b]'hb
-      let dist := boxA.distanceSqr boxB
-      (dist, ⟨a, ha'⟩, ⟨b, hb⟩)
-  return boxDistances.flatten.qsort (·.1 < ·.1)
+  let mut allDistances : Array (Int × Fin boxes.size × Fin boxes.size) := #[]
+  for ha : a in List.range boxes.size do
+    let boxA := boxes[a]'(by grind)
+    for hb : b in List.range' (a + 1) (boxes.size - (a + 1)) do
+      let boxB := boxes[b]'(by grind)
+      let entry := (boxA.distanceSqr boxB, ⟨a, (by grind)⟩, ⟨b, (by grind)⟩)
+      allDistances := allDistances.push entry
+  return allDistances.qsort (·.1 < ·.1)
     |>.map (fun (dist, a, b) => (a, b))
 
-def part1 (boxes : Array Pos3D) : IO Nat := do
+def part1 (boxes : Array Pos3D) : Id Nat := do
   let edgesToTake := if boxes.size = 20 then 10 else 1000
   let edges := allEdges boxes |>.take edgesToTake
   let uf := edges.foldl (fun uf (a, b) => (uf.union a b).1) (UnionFind.new boxes.size)
   return uf.groupSizes.qsort (· > ·) |>.take 3 |>.foldl (· * ·) 1
 
-def part2 (boxes : Array Pos3D) : IO Int := do
+def part2 (boxes : Array Pos3D) : Id Int := do
   let edges <- allEdges boxes
   let mut uf := UnionFind.new boxes.size
   for (a, b) in edges do
