@@ -58,21 +58,6 @@ def fromLines {m : Type -> Type}
       else default
   return mk width height rows
 
-theorem Array.max_length_le (rows : Array (Array α))
-  : ∀ row ∈ rows, row.size <= Array.foldl max 0 (rows.map (·.size)) := by
-  have ⟨rows⟩ := rows
-  simp
-  intro row hrow
-  rw [← List.foldr_eq_foldl]
-  induction rows <;> simp
-  case nil => contradiction
-  case cons hd tl ih =>
-    cases hrow
-    case head => omega
-    case tail h =>
-      have := ih h
-      omega
-
 def ofRows (rows : Array (Array α)) [Inhabited α] : Grid α :=
   let height := rows.size
   let width := Array.foldl max 0 (rows.map (·.size))
