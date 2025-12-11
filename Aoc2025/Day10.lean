@@ -146,7 +146,8 @@ def Machine.computePresses2 (m : Machine) : IO Nat := do
   | _ => throw <| IO.userError s!"Bad z3 result: {result}"
 
 def part2 (machines : Array Machine) : IO Nat := do
-  let presses <- machines.mapM (·.computePresses2)
+  let tasks <- machines.mapM (IO.asTask <| ·.computePresses2)
+  let presses <- liftExcept <| tasks.mapM Task.get
   return presses.sum
 
 def parseInput : IO (Array Machine) := do
