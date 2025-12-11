@@ -62,8 +62,8 @@ def parseInput : IO Graph := do
   Graph.parseLines <| <- (<- IO.getStdin).lines
 
 def topSort (graph : Graph) : Array String := Id.run do
-  letI Arr := (Array String)
-  letI Set := (Std.HashMap String Unit)
+  letI Arr := Array String
+  letI Set := Std.HashMap String Unit
   let rec dfs (n : String) : Nat ->
     StateT Set (StateM Arr) Unit
     | 0 => pure ()
@@ -80,26 +80,28 @@ def topSort (graph : Graph) : Array String := Id.run do
   return dfsAll.run' {} |>.run #[] |>.2.reverse
 
 def countWaysToReach (graph : Graph) (first last : String) : Id Nat := do
-  let mut counts : Std.HashMap String Nat := {(first, 1)}
+  let mut counts : Std.HashMap _ _ := {(first, 1)}
   for node in topSort graph do
     counts := counts.insertIfNew node
       (graph.inEdges.getD node #[]
         |>.map (counts.getD · 0)
         |>.sum)
-  return counts.getD last 0
+    if node == last then
+      return counts[node]'(by grind)
+  return 0
 
 def part1 (graph : Graph) : Id Nat :=
   countWaysToReach graph "you" "out"
 
-def part2 (graph : Graph) : IO Nat := do
-  let dacToFft <- countWaysToReach graph "dac" "fft"
-  if dacToFft = 0 then
+def part2 (graph : Graph) : Id Nat := do
+  let fftToDac <- countWaysToReach graph "fft" "dac"
+  if fftToDac ≠ 0 then -- holds for both the example and my input
     let svrToFft <- countWaysToReach graph "svr" "fft"
-    let fftToDac <- countWaysToReach graph "fft" "dac"
     let dacToOut <- countWaysToReach graph "dac" "out"
     return svrToFft * fftToDac * dacToOut
   else
     let svrToDac <- countWaysToReach graph "svr" "dac"
+    let dacToFft <- countWaysToReach graph "dac" "fft"
     let fftToOut <- countWaysToReach graph "fft" "out"
     return svrToDac * dacToFft * fftToOut
 
