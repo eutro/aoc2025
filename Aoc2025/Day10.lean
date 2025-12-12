@@ -91,7 +91,8 @@ def Machine.computePresses1 (m : Machine) : IO Nat := do
   throw <| IO.userError s!"Bad machine: {repr m}"
 
 def part1 (machines : Array Machine) : IO Nat := do
-  let presses <- machines.mapM Machine.computePresses1
+  let tasks <- machines.mapM (IO.asTask <| ·.computePresses1)
+  let presses <- liftExcept <| tasks.mapM Task.get
   return presses.sum
 
 structure Equation where
